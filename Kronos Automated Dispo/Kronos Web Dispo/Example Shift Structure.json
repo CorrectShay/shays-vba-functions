@@ -1,7 +1,7 @@
 {
-  id: 1,
-  name: "Security PCO",
-  equipment: {
+  "id": 1,
+  "name": "Security PCO",
+  "equipment": {
     keys: 1,
     radio: 1,
     duressAlarm: 1,
