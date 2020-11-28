@@ -1,1 +1,54 @@
-
+{
+  id: 1,
+  name: "Security PCO",
+  equipment: {
+    keys: 1,
+    radio: 1,
+    duressAlarm: 1,
+    obc: {
+      required: true,
+      obcid: "L1126"
+    },
+    icp: {
+      required: true,
+      icpid: "0123456"
+    },
+    restraints: {
+      required: true,
+      restraintid: "S1 Handcuffs"
+    }
+  },
+  kronos: {
+   label: "SEC-PCO" 
+  },
+  shifts: {
+    monday: {
+      required: true,
+      hours: "0600-1800"
+    },
+    tuesday: {
+      required: true,
+      hours: "0600-1800"
+    },
+    wednesday: {
+      required: true,
+      hours: "0600-1800"
+    },
+    thursday: {
+      required: true,
+      hours: "0600-1800"
+    },
+    friday: {
+      required: true,
+      hours: "0600-1800"
+    },
+    saturday: {
+      required: true,
+      hours: "0600-1800"
+    },
+    sunday: {
+      required: true,
+      hours: "0600-1800"
+    }
+  }
+}
