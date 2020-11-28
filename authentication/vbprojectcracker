@@ -72,3 +72,10 @@ Private Function MyDialogBoxParam(ByVal hInstance As Long, _
         Hook
     End If
 End Function
+
+'This is the sub you run to make it all work
+Sub unprotected()
+    If Hook Then
+        MsgBox "VBA Project is unprotected!", vbInformation, "*****"
+    End If
+End Sub
