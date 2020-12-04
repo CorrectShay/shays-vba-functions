@@ -29,7 +29,10 @@ Public Function KronosSunday(labelToFind As String, Optional required As Boolean
 End Function
 
 Private Function Kronos_GetNameFromLabel(labelToFind As String, dayOfWeek As Integer, Optional required As Boolean = True) As String
-  ' Function looks for a label in a pasted Kronos staff report and returns the name of the person that matches the shift label
+  ' This function looks for a label ( labelToFind ) in the Kronos Data worksheet
+  ' The search is limited to a day of the week Mon = 1 to Sun = 7.
+  ' The optional ( required ) boolean will determin the output of the function, if a shift is not required ( false ) then the return will be blank
+  ' If the shift is required ( true ) a not found shift will return <Not Found>
   
   Dim labelColumn As String  ' Specify which column in the pasted report the labels are located
   Dim rangeSize As Long      ' Contains the last row in the Kronos report to establish the size of the data range
@@ -39,31 +42,31 @@ Private Function Kronos_GetNameFromLabel(labelToFind As String, dayOfWeek As Int
   Dim searchResult As String
   Dim i As Variant
   
-  'Set day of week column for searching
+  ' Get the column for the dayOfWeek that has been passed into the function. These are stored in a xlVeryHidden worksheet called Settings as named ranges.
   Select Case dayOfWeek
     Case 1
       'Monday
-      labelColumn = Range("MondayColumn").Value 'Labels are in column J
+      labelColumn = Range("MondayColumn").Value
     Case 2
       'Tuesday
-      labelColumn = Range("TuesdayColumn").Value 'Labels are in column N
+      labelColumn = Range("TuesdayColumn").Value
     Case 3
       'Wednesday
-      labelColumn = Range("WednesdayColumn").Value 'Labels are in column R
+      labelColumn = Range("WednesdayColumn").Value
     Case 4
       'Thursday
-      labelColumn = Range("ThursdayColumn").Value 'Labels are in column U
+      labelColumn = Range("ThursdayColumn").Value
     Case 5
       'Friday
-      labelColumn = Range("FridayColumn").Value 'Labels are in column X
+      labelColumn = Range("FridayColumn").Value
     Case 6
       'Saturday
-      labelColumn = Range("SaturdayColumn").Value 'Labels are in column AB
+      labelColumn = Range("SaturdayColumn").Value
     Case 7
       'Sunday
-      labelColumn = Range("SundayColumn").Value 'Labels are in column AF
+      labelColumn = Range("SundayColumn").Value
     Case Else
-      'Error
+    'Error.  An invalid dayOfWeek has been specified.
       Kronos_GetNameFromLabel = "Invalid day of week specified.  Must be from 1 - 7."
   End Select
   
@@ -75,7 +78,8 @@ Private Function Kronos_GetNameFromLabel(labelToFind As String, dayOfWeek As Int
   On Error GoTo ErrHand
   For i = 1 To rangeSize
   
-    ' rawData is the interated column containing the shift labels
+    ' rawData is the iterated column containing the shift labels
+    ' both are cast to lower case to avoid typos
     rawData = LCase(Worksheets("Kronos Data").Range(labelColumn & CStr(i)).Value)
     searchData = LCase(labelToFind)
   
@@ -85,7 +89,7 @@ Private Function Kronos_GetNameFromLabel(labelToFind As String, dayOfWeek As Int
       searchResult = Worksheets("Kronos Data").Range("A" & CStr(i)).Value
       
       If searchResult = "" Then
-        'Search result returned a blank cell, likely as a result of a multi line entry in the kronos export
+        ' Search result returned a blank cell, likely as a result of a multi line entry in the kronos export
         Kronos_GetNameFromLabel = "<Not Found>"
       Else
         'Return the staffname from column A
@@ -102,6 +106,8 @@ Private Function Kronos_GetNameFromLabel(labelToFind As String, dayOfWeek As Int
     'This handles spare staff shifts by not returning anything if they are not found
     'Search string has not been found.  Handle not found output
     If InStr(labelToFind, " ") > 0 Then
+    ' This is looking for a nbsp charater which is present in the labels of site staff.  This acsii charater is produced by holding Alt and typing 255 on the number pad before releasing the Alt key.
+  
       Kronos_GetNameFromLabel = ""  ' No match was found but the shift was expected to be site staff.  Return empty string.
     Else
       Kronos_GetNameFromLabel = "<Not Found>" ' No match was found for a standard shift, return N/F
@@ -115,8 +121,9 @@ ErrHand:
 End Function
 
 Public Function getSpareStaff(dayOfWeek As Integer) As String
-  ' Function looks for a label in a pasted Kronos staff report and returns the name of the person that matches the shift label
-  
+  ' This function gets a list of site staff by looking for the hidden nbsp character in the labels, concatenating the names and shifts together and outputting the concatenated string
+  ' The fucntion can be called directly in a cell on a worksheet (noting that it will return multiple lined output.  It may also be called in msgbox for quick viewing.
+
   Dim labelColumn As String  ' Specify which column in the pasted report the labels are located
   Dim nameOffset As Integer  ' Specific how many columns offset the names are from the labels, negative integers to the left, poitive integers to the right
   Dim rangeSize As Long      ' Contains the last row in the Kronos report to establish the size of the data range
@@ -127,7 +134,7 @@ Public Function getSpareStaff(dayOfWeek As Integer) As String
   Dim cell As Variant
   Dim i As Variant
   
-  'Set day of week column for searching
+  ' Get the column for the dayOfWeek that has been passed into the function. These are stored in a xlVeryHidden worksheet called Settings as named ranges.
   Select Case dayOfWeek
     Case 1
       'Monday
@@ -176,6 +183,9 @@ ErrHand:
 End Function
 
 Public Function KronosNameLookup(name As String, dayOfWeek As Integer) As String
+  ' This fucntion looks for a name ( name ) as opposed to a shift label on a given day ( dayOfWeek ).
+  ' The fucntion returns either NW ( Nightwatch ), LVE ( Leave ), RDO ( Day off ) or the name that was found if the former conditions aren't found and therefore the person is on duty
+
   Dim labelColumn As String  ' Specify which column in the pasted report the labels are located
   Dim rangeSize As Long      ' Contains the last row in the Kronos report to establish the size of the data range
   Dim searchCell As Range    ' Variable serach cell
@@ -234,7 +244,7 @@ Public Function KronosNameLookup(name As String, dayOfWeek As Integer) As String
           If InStr(searchResult, "NW") > 0 Then
             KronosNameLookup = "NW"
           Else
-            If searchResult = "" Then
+            If InStr(searchResult, "Rostered Day Off") > 0 Then
               KronosNameLookup = "RDO"
             End If
           End If
@@ -252,6 +262,8 @@ ErrHand:
 End Function
 
 Public Sub PasteKronosData()
+    ' Pastes the copied kronos data report into the kronos Data worksheet in the appropriate location and then force refreshes the data
+
     Dim ws As Worksheet
     
     Set ws = Worksheets("Kronos Data")
@@ -262,6 +274,9 @@ Public Sub PasteKronosData()
 End Sub
 
 Private Sub fixReportFormat()
+  ' This function detects the columns containing the data for each day of the week Mon-Sun and updates the named ranges in the Settings worksheet to reflect the correct location of the columns
+  ' This is to prevent the sheet from breaking when Kronos changes the format of the output report 
+
   Dim cell As Range
   Dim i As Integer
   Dim ws As Worksheet
@@ -409,6 +424,7 @@ Public Sub clearKronosData()
 End Sub
 
 Private Sub refreshAllSheets()
+  ' Force all sheets to recalculate all formulas
   Dim ws As Worksheet
   
   For Each ws In ThisWorkbook.Worksheets
